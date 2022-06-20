@@ -1,7 +1,9 @@
 import subprocess
 import time
-from typing import List
 import json
+
+from typing import List
+from contextlib import suppress
 
 
 class ModbusAPI_WB_MAP12E:
@@ -62,16 +64,18 @@ class ModbusAPI_WB_MAP12E:
         return out_int
 
     def _send_command(self, register, registers_count) -> List[str]:
-        try:
-            time.sleep(0.1)
-            command = self.command_str + \
-                      f' {self.ip} -p{self.port} -a{self.slave_address} -r{register} -c {registers_count}'
 
-            output = subprocess.check_output(command.split())
-            out_str_list = str(output).split('Data:')[1].split()[0:registers_count]
-            return out_str_list
-        except IndexError:
-            print('reading data from map12e error')
+        command = self.command_str + \
+                  f' {self.ip} -p{self.port} -a{self.slave_address} -r{register} -c {registers_count}'
+
+        out_str_list = ''
+
+        while not out_str_list:
+            with suppress(IndexError):
+                output = subprocess.check_output(command.split())
+                out_str_list = str(output).split('Data:')[1].split()[0:registers_count]
+
+        return out_str_list
 
     def _fill_address_dict(self, name):
         out_dict = {}
