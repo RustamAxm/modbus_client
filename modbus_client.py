@@ -74,7 +74,11 @@ class ModbusAPI_WB_MAP12E:
         while not out_str_list:
             with suppress(IndexError):
                 time.sleep(0.1)
-                output = subprocess.check_output(command.split())
+                try:
+                    output = subprocess.check_output(command.split())
+                except subprocess.CalledProcessError:
+                    print('subprocess.CalledProcessError')
+                    pass
                 out_str_list = str(output).split('Data:')[1].split()[0:registers_count]
 
         return out_str_list
