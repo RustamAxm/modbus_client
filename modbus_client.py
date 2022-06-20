@@ -76,10 +76,11 @@ class ModbusAPI_WB_MAP12E:
                 time.sleep(0.1)
                 try:
                     output = subprocess.check_output(command.split())
+                    out_str_list = str(output).split('Data:')[1].split()[0:registers_count]
                 except subprocess.CalledProcessError:
                     print('subprocess.CalledProcessError')
+                    out_str_list = ''
                     pass
-                out_str_list = str(output).split('Data:')[1].split()[0:registers_count]
 
         return out_str_list
 
