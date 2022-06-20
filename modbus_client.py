@@ -1,6 +1,7 @@
 import subprocess
 import time
 import json
+import re
 
 from typing import List
 from contextlib import suppress
@@ -39,7 +40,7 @@ class ModbusAPI_WB_MAP12E:
     def get_active_powers(self):
         total_power = {}
         scale = self._get_scale('Total P')
-        for key, val in self._fill_address_dict('Total P').items():
+        for key, val in self._fill_address_dict_for_P('Total P').items():
             total_power[key] = self._convert_from_big_endian(self._get_numbers_int(val, 2)) * scale
         return total_power
 
@@ -72,6 +73,7 @@ class ModbusAPI_WB_MAP12E:
 
         while not out_str_list:
             with suppress(IndexError):
+                time.sleep(0.1)
                 output = subprocess.check_output(command.split())
                 out_str_list = str(output).split('Data:')[1].split()[0:registers_count]
 
@@ -84,12 +86,21 @@ class ModbusAPI_WB_MAP12E:
                 out_dict[x['name']] = x['address']
         return out_dict
 
+    def _fill_address_dict_for_P(self, name):
+        out_dict = {}
+        for x in self.config_data:
+            try:
+                test = re.findall(r'Ch \d{1} Total P$', x['name'])[0]
+                out_dict[test] = x['address']
+            except IndexError:
+                pass
+        return out_dict
+
     def _get_scale(self, name):
         scale = 0
         for x in self.config_data:
             if name in x['name']:
                 scale = x['scale']
-
                 break
         return scale
 
@@ -97,7 +108,7 @@ class ModbusAPI_WB_MAP12E:
     def _convert_from_little_endian(reg_list_):
         sum_ = 0
         for i in range(len(reg_list_)):
-            sum_ += 2**(i * 16) * reg_list_[i]
+            sum_ += 2 ** (i * 16) * reg_list_[i]
         return sum_
 
     @staticmethod
