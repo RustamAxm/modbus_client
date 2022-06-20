@@ -2,22 +2,6 @@ import subprocess
 import time
 from typing import List
 import json
-import time
-import requests
-
-def parser():
-    ip = '172.17.27.127'
-    port = 23
-    register = 5136
-    count = 1
-    slave_address = 76
-    command = 'modbus_client --debug -mtcp -t0x03 {} -p{} -a{} -r{} -c {}'.format(ip,
-                                                                                  port,
-                                                                                  slave_address,
-                                                                                  register,
-                                                                                  count).split()
-    output = subprocess.run(command, capture_output=True)
-    print(output)
 
 
 class ModbusAPI_WB_MAP12E:
@@ -78,15 +62,16 @@ class ModbusAPI_WB_MAP12E:
         return out_int
 
     def _send_command(self, register, registers_count) -> List[str]:
-        command = self.command_str + ' {} -p{} -a{} -r{} -c {}'.format(self.ip,
-                                                                       self.port,
-                                                                       self.slave_address,
-                                                                       register,
-                                                                       registers_count)
+        try:
+            time.sleep(0.1)
+            command = self.command_str + \
+                      f' {self.ip} -p{self.port} -a{self.slave_address} -r{register} -c {registers_count}'
 
-        output = subprocess.check_output(command.split())
-        out_str_list = str(output).split('Data:')[1].split()[0:registers_count]
-        return out_str_list
+            output = subprocess.check_output(command.split())
+            out_str_list = str(output).split('Data:')[1].split()[0:registers_count]
+            return out_str_list
+        except IndexError:
+            print('reading data from map12e error')
 
     def _fill_address_dict(self, name):
         out_dict = {}
@@ -117,75 +102,3 @@ class ModbusAPI_WB_MAP12E:
         for i in range(len(reg_list_)):
             sum_ += 2 ** (i * 16) * reg_list_[len(reg_list_) - i - 1]
         return sum_
-
-
-
-# def test_modbus():
-#     client = ModbusTcpClient('172.17.27.127', port=23)
-#     # client.write_coil(1, True)
-#     result = client.read_holding_registers(address=5136, count=1, SLAVE=76)
-#     print(result)
-#     client.close()
-
-
-def print_dic(dic):
-    for key, val in dic.items():
-        print(key, val)
-
-
-        # command = 'curl -i -XPOST "http://lava.qat.yadro.com:8086/write?db=wirenboard_db" --data-binary "current,sensor={},region=us-west value={}"'\
-        #     .format(str(key).replace(' ', '_'), round(val, 4))
-        # subprocess.run(command.split())
-        # time.sleep(0.1)
-
-def upload_dic(dic):
-    url = 'http://lava.qat.yadro.com:8086/write?db=wirenboard_db'
-    headers = {'Content-Type': 'text/plain'}
-    for key, val in dic.items():
-        payload = f"current,channel={str(key).replace(' ', '_')},region=us-west value={round(val, 3)}"
-        requests.request("POST", url, headers=headers, data=payload, verify=False)
-
-def all(client):
-    # print_dic(client1.get_voltages())
-    # print_dic(client1.get_energy_channels())
-    # print_dic(client1.get_frequency())
-    print_dic(client.get_currents())
-    # print_dic(client1.get_active_powers())
-
-def data_base_send(client, repeat):
-    dict_ = client.get_currents()
-    for _ in range(repeat):
-        upload_dic(dict_)
-        print_dic(dict_)
-        time.sleep(2)
-
-def test_my_api():
-    ip = '172.17.27.127'
-    port = 23
-    print("CLIENT RUNING")
-
-    client1 = ModbusAPI_WB_MAP12E(ip=ip,
-                                     port=port,
-                                     slave_address=76)
-
-
-    client2 = ModbusAPI_WB_MAP12E(ip=ip,
-                                  port=port,
-                                  slave_address=34)
-
-    while True:
-        try:  # used try so that if user pressed other than the given key error will not be shown
-            current = client1.get_currents()
-            voltage = client1.get_voltages()
-            upload_dic(current)
-            upload_dic(voltage)
-            time.sleep(30)
-            print("send")
-        except:
-            break
-
-
-
-if __name__ == '__main__':
-
-    test_my_api()

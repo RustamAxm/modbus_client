@@ -19,5 +19,5 @@ RUN set -ex \
 RUN apt install -y libmodbus5
 RUN dpkg -i ./modbus-utils_1.2_amd64.deb
 
-CMD ["python3", "-u","modbus_client.py"]
+CMD ["python3", "-u","main.py"]
 
