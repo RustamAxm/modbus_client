@@ -3,11 +3,11 @@ import time
 import json
 import re
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from contextlib import suppress
 
 
-class ModbusAPI_WB_MAP12E:
+class ModbusClientForMap12e:
     def __init__(self, ip, port, slave_address):
         self.ip = ip
         self.port = port
@@ -20,36 +20,36 @@ class ModbusAPI_WB_MAP12E:
     def device_name(self):
         self._send_command(200, 6)
 
-    def get_voltages(self):
+    def get_voltages(self) -> Dict[str, float]:
         return self._fill_data_dict('Urms')
 
-    def get_currents(self):
+    def get_currents(self) -> Dict[str, float]:
         return self._fill_data_dict('Irms')
 
-    def get_energy_channels(self):
+    def get_energy_channels(self) -> Dict[str, float]:
         return self._fill_data_dict('Total AP energy')
 
-    def get_frequency(self):
+    def get_frequency(self) -> Dict[str, float]:
         return self._fill_data_dict('Frequency')
 
-    def get_power_for_phase(self):
+    def get_power_for_phase(self) -> Dict[str, float]:
         return self._fill_data_dict('P L')
 
-    def get_phase_angle(self):
+    def get_phase_angle(self) -> Dict[str, float]:
         return self._fill_data_dict('Phase angle L')
 
-    def get_voltage_angle(self):
+    def get_voltage_angle(self) -> Dict[str, float]:
         return self._fill_data_dict('Voltage angle')
 
     # TODO как то обработать для всех случаев запрос строки
-    def get_active_powers(self):
+    def get_active_powers(self) -> Dict[str, float]:
         total_power = {}
         scale = self._get_scale('Total P')
         for key, val in self._fill_address_dict_for_P('Total P').items():
             total_power[key] = self._convert_from_big_endian(self._get_numbers_int(val, 2)) * scale
         return total_power
 
-    def _fill_data_dict(self, param_name):
+    def _fill_data_dict(self, param_name) -> Dict[str, float]:
         out_dict = {}
         scale, reg_count, is_little_endian = self._get_name_stat(param_name)
 
@@ -61,7 +61,7 @@ class ModbusAPI_WB_MAP12E:
 
         return out_dict
 
-    def _get_numbers_int(self, register, registers_count):
+    def _get_numbers_int(self, register, registers_count) -> List[int]:
         out_str_list = self._send_command(register, registers_count)
         out_int = [int(x, 16) for x in out_str_list]
         return out_int
@@ -86,19 +86,18 @@ class ModbusAPI_WB_MAP12E:
 
         return out_str_list
 
-    def _fill_address_dict(self, name):
+    def _fill_address_dict(self, name) -> Dict[str, str]:
         out_dict = {}
         for x in self.config_data:
             if name in x['name']:
                 out_dict[x['name']] = x['address']
         return out_dict
 
-    def _fill_address_dict_for_P(self, name):
+    def _fill_address_dict_for_P(self, name) -> Dict[str, str]:
         out_dict = {}
-        n = 'Total P'
         for x in self.config_data:
             try:
-                raw_regex = f'Ch \d {n}$'
+                raw_regex = f'Ch \d {name}$'
                 regex = r'{}'.format(raw_regex)
                 test = re.findall(regex, x['name'])[0]
                 out_dict[test] = x['address']
@@ -106,7 +105,7 @@ class ModbusAPI_WB_MAP12E:
                 pass
         return out_dict
 
-    def _get_scale(self, name):
+    def _get_scale(self, name) -> float:
         scale = 0
         for x in self.config_data:
             if name in x['name']:
@@ -129,14 +128,14 @@ class ModbusAPI_WB_MAP12E:
         return scale, reg_count, is_little
 
     @staticmethod
-    def _convert_from_little_endian(reg_list_):
+    def _convert_from_little_endian(reg_list_) -> int:
         sum_ = 0
         for i in range(len(reg_list_)):
             sum_ += 2 ** (i * 16) * reg_list_[i]
         return sum_
 
     @staticmethod
-    def _convert_from_big_endian(reg_list_):
+    def _convert_from_big_endian(reg_list_) -> int:
         sum_ = 0
         for i in range(len(reg_list_)):
             sum_ += 2 ** (i * 16) * reg_list_[len(reg_list_) - i - 1]

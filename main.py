@@ -1,7 +1,7 @@
 import time
 import requests
 
-from modbus_client import ModbusAPI_WB_MAP12E
+from modbus_client import ModbusClientForMap12e
 
 
 def print_dic(dic):
@@ -36,14 +36,14 @@ def test_my_api():
     print("CLIENT RUNING")
     slave_1 = 76
     slave_2 = 34
-    client1 = ModbusAPI_WB_MAP12E(ip=ip,
-                                  port=port,
-                                  slave_address=slave_1)
+    client1 = ModbusClientForMap12e(ip=ip,
+                                    port=port,
+                                    slave_address=slave_1)
 
 
-    client2 = ModbusAPI_WB_MAP12E(ip=ip,
-                                  port=port,
-                                  slave_address=slave_2)
+    client2 = ModbusClientForMap12e(ip=ip,
+                                    port=port,
+                                    slave_address=slave_2)
 
     while True:
         send_to_bd(client1, slave_1)
@@ -63,13 +63,13 @@ def test_all_stat():
     port = 23
     print("CLIENT RUNING")
 
-    client1 = ModbusAPI_WB_MAP12E(ip=ip,
-                                  port=port,
-                                  slave_address=76)
+    client1 = ModbusClientForMap12e(ip=ip,
+                                    port=port,
+                                    slave_address=76)
 
-    client2 = ModbusAPI_WB_MAP12E(ip=ip,
-                                  port=port,
-                                  slave_address=34)
+    client2 = ModbusClientForMap12e(ip=ip,
+                                    port=port,
+                                    slave_address=34)
 
     all(client1)
     print("__________________________________")

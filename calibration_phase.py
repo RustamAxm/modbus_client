@@ -1,7 +1,7 @@
 import time
 import requests
 
-from modbus_client import ModbusAPI_WB_MAP12E
+from modbus_client import ModbusClientForMap12e
 
 def print_dic(dic):
     for key, val in dic.items():
@@ -14,9 +14,9 @@ def calibration():
     print("CLIENT RUNING")
     slave_1 = 34
     slave_2 = 34
-    client1 = ModbusAPI_WB_MAP12E(ip=ip,
-                                  port=port,
-                                  slave_address=slave_1)
+    client1 = ModbusClientForMap12e(ip=ip,
+                                    port=port,
+                                    slave_address=slave_1)
     print_dic(client1.get_power_for_phase())
     print_dic(client1.get_voltages())
     print_dic(client1.get_currents())
