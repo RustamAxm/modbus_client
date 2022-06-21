@@ -22,10 +22,12 @@ def send_to_bd(client, slave):
     voltage = client.get_voltages()
     power = client.get_active_powers()
     energy = client.get_energy_channels()
+    power_for_phase = client.get_power_for_phase()
     upload_dic(current, f'slave_{slave}')
     upload_dic(voltage, f'slave_{slave}')
     upload_dic(power, f'slave_{slave}')
     upload_dic(energy, f'slave_{slave}')
+    upload_dic(power_for_phase, f'slave_{slave}')
 
 
 def test_my_api():
@@ -75,5 +77,5 @@ def test_all_stat():
 
 
 if __name__ == '__main__':
-    # test_my_api()
-    test_all_stat()
+    test_my_api()
+    # test_all_stat()

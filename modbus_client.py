@@ -3,7 +3,7 @@ import time
 import json
 import re
 
-from typing import List
+from typing import List, Tuple
 from contextlib import suppress
 
 
@@ -21,22 +21,27 @@ class ModbusAPI_WB_MAP12E:
         self._send_command(200, 6)
 
     def get_voltages(self):
-        voltages_dic = {}
-        scale = self._get_scale('Urms')
-        for key, val in self._fill_address_dict('Urms').items():
-            voltages_dic[key] = self._convert_from_big_endian(self._get_numbers_int(val, 2)) * scale
-
-        return voltages_dic
+        return self._fill_data_dict('Urms')
 
     def get_currents(self):
-        current_dic = {}
-        scale = self._get_scale('Irms')
-        for key, val in self._fill_address_dict('Irms').items():
-            current_dic[key] = self._convert_from_big_endian(self._get_numbers_int(val, 2)) * scale
+        return self._fill_data_dict('Irms')
 
-        return current_dic
+    def get_energy_channels(self):
+        return self._fill_data_dict('Total AP energy')
 
-    # TODO сделать отдельный считыватель показаний по типу данных в словаре u32 - 2 регистра и тд
+    def get_frequency(self):
+        return self._fill_data_dict('Frequency')
+
+    def get_power_for_phase(self):
+        return self._fill_data_dict('P L')
+
+    def get_phase_angle(self):
+        return self._fill_data_dict('Phase angle L')
+
+    def get_voltage_angle(self):
+        return self._fill_data_dict('Voltage angle')
+
+    # TODO как то обработать для всех случаев запрос строки
     def get_active_powers(self):
         total_power = {}
         scale = self._get_scale('Total P')
@@ -44,20 +49,17 @@ class ModbusAPI_WB_MAP12E:
             total_power[key] = self._convert_from_big_endian(self._get_numbers_int(val, 2)) * scale
         return total_power
 
-    def get_energy_channels(self):
-        energy_dic = {}
-        scale = self._get_scale('Total AP energy')
-        for key, val in self._fill_address_dict('Total AP energy').items():
-            energy_dic[key] = self._convert_from_little_endian(self._get_numbers_int(val, 4)) * scale
+    def _fill_data_dict(self, param_name):
+        out_dict = {}
+        scale, reg_count, is_little_endian = self._get_name_stat(param_name)
 
-        return energy_dic
+        for key, val in self._fill_address_dict(param_name).items():
+            if is_little_endian:
+                out_dict[key] = self._convert_from_little_endian(self._get_numbers_int(val, reg_count)) * scale
+            else:
+                out_dict[key] = self._convert_from_big_endian(self._get_numbers_int(val, reg_count)) * scale
 
-    def get_frequency(self):
-        freq_dic = {}
-        scale = self._get_scale('Frequency')
-        for key, val in self._fill_address_dict('Frequency').items():
-            freq_dic[key] = self._convert_from_big_endian(self._get_numbers_int(val, 1)) * scale
-        return freq_dic
+        return out_dict
 
     def _get_numbers_int(self, register, registers_count):
         out_str_list = self._send_command(register, registers_count)
@@ -93,9 +95,12 @@ class ModbusAPI_WB_MAP12E:
 
     def _fill_address_dict_for_P(self, name):
         out_dict = {}
+        n = 'Total P'
         for x in self.config_data:
             try:
-                test = re.findall(r'Ch \d{1} Total P$', x['name'])[0]
+                raw_regex = f'Ch \d {n}$'
+                regex = r'{}'.format(raw_regex)
+                test = re.findall(regex, x['name'])[0]
                 out_dict[test] = x['address']
             except IndexError:
                 pass
@@ -108,6 +113,20 @@ class ModbusAPI_WB_MAP12E:
                 scale = x['scale']
                 break
         return scale
+
+    def _get_name_stat(self, name) -> Tuple[int, int, bool]:
+        scale = 0
+        reg_count = 1
+        is_little = False
+        for x in self.config_data:
+            if name in x['name']:
+                scale = x['scale']
+                reg_count = int(x['format'][1:]) // 16
+                if 'word_order' in x.keys():
+                    if x['word_order'] == 'little_endian':
+                        is_little = True
+                break
+        return scale, reg_count, is_little
 
     @staticmethod
     def _convert_from_little_endian(reg_list_):
