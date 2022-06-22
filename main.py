@@ -4,12 +4,12 @@ import requests
 from modbus_client import ModbusClientForMap12e
 
 
-def print_dic(dic):
+def print_dict(dic):
     for key, val in dic.items():
         print(key, val)
 
 
-def upload_dic(dic, table):
+def upload_dict(dic, table):
     url = 'http://lava.qat.yadro.com:8086/write?db=wirenboard_db'
     headers = {'Content-Type': 'text/plain'}
     for key, val in dic.items():
@@ -23,11 +23,11 @@ def send_to_bd(client, slave):
     power = client.get_active_powers()
     energy = client.get_energy_channels()
     power_for_phase = client.get_power_for_phase()
-    upload_dic(current, f'slave_{slave}')
-    upload_dic(voltage, f'slave_{slave}')
-    upload_dic(power, f'slave_{slave}')
-    upload_dic(energy, f'slave_{slave}')
-    upload_dic(power_for_phase, f'slave_{slave}')
+    upload_dict(current, f'slave_{slave}')
+    upload_dict(voltage, f'slave_{slave}')
+    upload_dict(power, f'slave_{slave}')
+    upload_dict(energy, f'slave_{slave}')
+    upload_dict(power_for_phase, f'slave_{slave}')
 
 
 def test_my_api():
@@ -52,11 +52,11 @@ def test_my_api():
 
 
 def all(client):
-    print_dic(client.get_voltages())
-    print_dic(client.get_energy_channels())
-    print_dic(client.get_frequency())
-    print_dic(client.get_currents())
-    print_dic(client.get_active_powers())
+    print_dict(client.get_voltages())
+    print_dict(client.get_energy_channels())
+    print_dict(client.get_frequency())
+    print_dict(client.get_currents())
+    print_dict(client.get_active_powers())
 
 def test_all_stat():
     ip = '172.17.27.127'

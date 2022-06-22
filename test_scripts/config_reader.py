@@ -1,7 +1,7 @@
 import json
 import re
 
-with open('config_map12e.json', 'r') as read_file:
+with open('../config_map12e.json', 'r') as read_file:
     data = json.load(read_file)
 
 # for x in data['device']['channels']:
