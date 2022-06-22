@@ -23,8 +23,14 @@ class ModbusClientForMap12e:
     def get_voltages(self) -> Dict[str, float]:
         return self._fill_data_dict('Urms')
 
+    def get_peak_voltages(self) -> Dict[str, float]:
+        return self._fill_data_dict('Upeak')
+
     def get_currents(self) -> Dict[str, float]:
         return self._fill_data_dict('Irms')
+
+    def get_peak_currents(self) -> Dict[str, float]:
+        return self._fill_data_dict('Ipeak')
 
     def get_energy_channels(self) -> Dict[str, float]:
         return self._fill_data_dict('Total AP energy')

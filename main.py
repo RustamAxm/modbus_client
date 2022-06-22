@@ -28,6 +28,11 @@ def send_to_bd(client, slave):
     upload_dict(power, f'slave_{slave}')
     upload_dict(energy, f'slave_{slave}')
     upload_dict(power_for_phase, f'slave_{slave}')
+    # for extremum of values
+    # extremum_voltage = client.get_peak_voltages()
+    # extremum_current = client.get_peak_currents()
+    # upload_dict(extremum_voltage, f'extremum_{slave}')
+    # upload_dict(extremum_current, f'extremum_{slave}')
 
 
 def test_my_api():
@@ -57,6 +62,9 @@ def all(client):
     print_dict(client.get_frequency())
     print_dict(client.get_currents())
     print_dict(client.get_active_powers())
+    print_dict(client.get_peak_voltages())
+    print_dict(client.get_peak_currents())
+
 
 def test_all_stat():
     ip = '172.17.27.127'
