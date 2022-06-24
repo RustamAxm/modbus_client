@@ -5,14 +5,14 @@ from modbus_client import ModbusClientForMap12e
 
 def print_dic(dic):
     for key, val in dic.items():
-
-        print(key, val)
+        if 'Ch 1' in key:
+            print(key, val)
 
 def calibration():
     ip = '172.17.27.127'
     port = 23
     print("CLIENT RUNING")
-    slave_1 = 34
+    slave_1 = 24
     slave_2 = 34
     client1 = ModbusClientForMap12e(ip=ip,
                                     port=port,

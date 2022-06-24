@@ -41,18 +41,23 @@ def test_my_api():
     print("CLIENT RUNING")
     slave_1 = 76
     slave_2 = 34
+    slave_3 = 24
     client1 = ModbusClientForMap12e(ip=ip,
                                     port=port,
                                     slave_address=slave_1)
-
 
     client2 = ModbusClientForMap12e(ip=ip,
                                     port=port,
                                     slave_address=slave_2)
 
+    client3 = ModbusClientForMap12e(ip=ip,
+                                    port=port,
+                                    slave_address=slave_3)
+
     while True:
         send_to_bd(client1, slave_1)
         send_to_bd(client2, slave_2)
+        send_to_bd(client3, slave_3)
         time.sleep(10)
 
 
